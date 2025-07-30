@@ -1,0 +1,153 @@
+---
+import { type CollectionEntry, getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: post,
+  }));
+}
+
+type Props = CollectionEntry<'blog'>;
+
+const post = Astro.props;
+const { Content } = await post.render();
+
+const categories = {
+  'ai-finance': 'AI in Finance',
+  'biotech': 'Biotech Analysis', 
+  'market-analysis': 'Market Analysis',
+  'learning-ai': 'Learning AI',
+  'career': 'Career & Learning',
+};
+---
+
+<Layout title={post.data.title} description={post.data.description}>
+  <main class="py-12">
+    <div class="container mx-auto px-4">
+      <article class="max-w-4xl mx-auto">
+        <!-- Breadcrumb -->
+        <nav class="mb-8">
+          <ol class="flex items-center space-x-2 text-sm text-gray-600">
+            <li><a href="/" class="hover:text-blue-600">Home</a></li>
+            <li class="before:content-['/'] before:mx-2">
+              <a href="/blog" class="hover:text-blue-600">Blog</a>
+            </li>
+            <li class="before:content-['/'] before:mx-2">
+              <a href={`/blog/category/${post.data.category}`} class="hover:text-blue-600">
+                {categories[post.data.category] || post.data.category}
+              </a>
+            </li>
+          </ol>
+        </nav>
+
+        <!-- Header -->
+        <header class="mb-8">
+          <div class="flex gap-2 mb-4">
+            <span class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded">
+              {categories[post.data.category] || post.data.category}
+            </span>
+            {post.data.tags?.map((tag: string) => (
+              <span class="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded">{tag}</span>
+            ))}
+          </div>
+          <h1 class="text-4xl font-bold mb-4">{post.data.title}</h1>
+          <p class="text-xl text-gray-600 mb-6">{post.data.description}</p>
+          <div class="flex items-center text-sm text-gray-500 space-x-4">
+            <time datetime={post.data.pubDate.toISOString()}>
+              Published: {new Date(post.data.pubDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </time>
+            {post.data.updatedDate && (
+              <time datetime={post.data.updatedDate.toISOString()}>
+                Updated: {new Date(post.data.updatedDate).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </time>
+            )}
+          </div>
+        </header>
+
+        <!-- Hero Image -->
+        {post.data.heroImage && (
+          <div class="mb-8">
+            <img 
+              src={post.data.heroImage} 
+              alt={post.data.title}
+              class="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
+            />
+          </div>
+        )}
+
+        <!-- Content -->
+        <div class="prose prose-lg max-w-none">
+          <Content />
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="mt-12 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p class="text-sm text-gray-700">
+            <strong>Disclaimer:</strong> This content is for educational purposes only and does not constitute investment advice. 
+            All investments carry risk of loss. Past performance does not guarantee future results. 
+            Consult a qualified financial advisor before making investment decisions.
+          </p>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="mt-12 pt-8 border-t border-gray-200">
+          <div class="flex justify-between">
+            <a href="/blog" class="text-blue-600 hover:text-blue-800 font-medium">
+              ← Back to Blog
+            </a>
+            <a href="/blog/category/{post.data.category}" class="text-blue-600 hover:text-blue-800 font-medium">
+              More in {categories[post.data.category]} →
+            </a>
+          </div>
+        </nav>
+      </article>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .prose {
+    @apply text-gray-800;
+  }
+  .prose h2 {
+    @apply text-2xl font-bold mt-8 mb-4;
+  }
+  .prose h3 {
+    @apply text-xl font-bold mt-6 mb-3;
+  }
+  .prose p {
+    @apply mb-4 leading-relaxed;
+  }
+  .prose ul, .prose ol {
+    @apply mb-4 pl-6;
+  }
+  .prose li {
+    @apply mb-2;
+  }
+  .prose code {
+    @apply bg-gray-100 px-1 py-0.5 rounded text-sm font-mono;
+  }
+  .prose pre {
+    @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4;
+  }
+  .prose pre code {
+    @apply bg-transparent p-0;
+  }
+  .prose blockquote {
+    @apply border-l-4 border-blue-500 pl-4 italic text-gray-700 my-4;
+  }
+  .prose a {
+    @apply text-blue-600 hover:text-blue-800 underline;
+  }
+</style>
